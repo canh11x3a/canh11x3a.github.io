@@ -1,0 +1,24 @@
+{{- if .Site.Params.search -}}
+    {{- $index := slice -}}
+    {{- $pages := .Site.RegularPages -}}
+    {{- if .Site.Params.page.hiddenFromSearch -}}
+        {{- $pages = where $pages "Params.hiddenfromsearch" false -}}
+    {{- else -}}
+        {{- $pages = where $pages "Params.hiddenfromsearch" "!=" true -}}
+    {{- end -}}
+    {{- range $pages -}}
+        {{- $uri := .RelPermalink -}}
+        {{- if $.Site.Params.search.absoluteURL -}}
+            {{- $uri = .Permalink -}}
+        {{- end -}}
+        {{- $meta := dict "uri" $uri "title" .Title "tags" .Params.tags "categories" .Params.categories -}}
+        {{- $meta = $.Site.Params.dateFormat | default "2021-01-02" | .PublishDate.Format | dict "date" | merge $meta -}}
+        {{- with .Description -}}
+            {{- $index = $index | append (dict "content" . "objectID" $uri | merge $meta) -}}
+        {{- else -}}
+            {{- $content := (.Summary | plainify | htmlUnescape) -}}
+            {{- $index = $index | append (dict "content" $content "objectID" $uri | merge $meta) -}}
+        {{- end -}}
+    {{- end -}}
+    {{- $index | jsonify | safeJS -}}
+{{- end -}}
